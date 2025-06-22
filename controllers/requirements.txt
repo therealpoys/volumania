@@ -1,0 +1,3 @@
+kopf==1.36.1
+kubernetes>=26.1.0
+prometheus-api-client==0.5.1

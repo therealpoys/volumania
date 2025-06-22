@@ -1,0 +1,8 @@
+apiVersion: scaling.volumania.io/v1
+kind: PVCManualResize
+metadata:
+  name: resize-my-app
+  namespace: wazuh
+spec:
+  pvcName: wazuh-indexer-wazuh-indexer-0 
+  newSize: 51Gi
