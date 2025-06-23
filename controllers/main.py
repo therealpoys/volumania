@@ -1,5 +1,5 @@
 import kopf
-from handlers import manual_resize
+from handlers import manual_resize, autoscaler
 import logging
 
 # Optional: Global init/logging hooks

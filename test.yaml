@@ -5,4 +5,4 @@ metadata:
   namespace: wazuh
 spec:
   pvcName: wazuh-indexer-wazuh-indexer-0 
-  newSize: 51Gi
+  newSize: 52Gi
