@@ -1,7 +1,8 @@
 from prometheus_api_client import PrometheusConnect
 import os
 
-prom = PrometheusConnect(url=os.getenv("PROM_URL", "http://localhost:9090"), disable_ssl=True)
+PROMETHEUS_URL = os.getenv("PROMETHEUS_URL", "http://prometheus.default.svc:9090")
+prom = PrometheusConnect(url=os.getenv("PROM_URL", PROMETHEUS_URL), disable_ssl=True)
 
 def get_pvc_usage_percent(namespace: str, pvc_name: str) -> float | None:
     try:
