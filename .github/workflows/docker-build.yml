@@ -1,16 +1,15 @@
-name: Build & Push Volumania Operator
+name: Build & Push Volumania Image on Release
 
 on:
-  push:
-    branches: ["main"]
-    tags: ["v*"]  # Optional: falls du mit Versions-Tags arbeitest
+  release:
+    types: [published]
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,27 +19,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
 
-      - name: Extract Git info
-        id: vars
+      - name: Extract version from release tag
+        id: extract_tag
         run: |
-          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "branch=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')" >> $GITHUB_OUTPUT
+          echo "RELEASE_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
 
-      - name: Build and push Docker image
+      - name: Build and push image with version tag
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: |
+            ghcr.io/${{ github.repository }}:${{ env.RELEASE_VERSION }}
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}
-            ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.branch }}
-
