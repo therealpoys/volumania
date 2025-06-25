@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/therealpoys/volumania
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecret: ghcr-secret  # 👈 der Name des Kubernetes-Secrets
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 200m
+    memory: 128Mi
