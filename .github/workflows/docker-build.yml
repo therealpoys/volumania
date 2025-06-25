@@ -1,17 +1,19 @@
-name: Build & Push Volumania Image on Release
+name: Build & Push Volumania Images
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - '**'  
+    tags:
+      - 'v*'  
 
 permissions:
   contents: read
   packages: write
 
 jobs:
-  build-and-push:
+  docker:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -19,24 +21,29 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GHCR
+      - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
 
-      - name: Extract version from release tag
-        id: extract_tag
+      - name: Extract tag and metadata
+        id: meta
         run: |
-          echo "RELEASE_VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "sha=sha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "branch=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
+          echo "is_main=$([[ '${{ github.ref }}' == 'refs/heads/main' ]] && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "is_tag=$([[ '${{ github.ref }}' == refs/tags/* ]] && echo true || echo false)" >> $GITHUB_OUTPUT
 
-      - name: Build and push image with version tag
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ env.RELEASE_VERSION }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.sha }}
+            ${{ steps.meta.outputs.is_main == 'true' && format('ghcr.io/{0}:latest', github.repository) || '' }}
+            ${{ steps.meta.outputs.is_tag == 'true' && format('ghcr.io/{0}:{1}', github.repository, github.ref_name) || '' }}
+            ${{ steps.meta.outputs.is_main != 'true' && steps.meta.outputs.is_tag != 'true' && format('ghcr.io/{0}:dev-{1}', github.repository, steps.meta.outputs.branch) || '' }}
