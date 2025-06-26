@@ -3,7 +3,7 @@ name: Helm Chart veröffentlichen
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # Nur bei Tags wie v0.1.0, v1.0.1 etc.
 
 jobs:
   release-helm-chart:
@@ -13,16 +13,21 @@ jobs:
     steps:
       - name: Repository auschecken
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Tags mitziehen!
 
       - name: Helm installieren
         uses: azure/setup-helm@v3
         with:
           version: v3.14.0
 
-      - name: Chart paketieren
+      - name: Chart version auslesen
+        id: chart
         run: |
+          VERSION="${GITHUB_REF##*/}"
           mkdir -p .cr-release-packages
-          helm package charts/volumania --destination .cr-release-packages
+          helm package charts/volumania --version $VERSION --destination .cr-release-packages
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Git konfigurieren
         run: |
@@ -34,7 +39,8 @@ jobs:
           git fetch origin gh-pages || git checkout --orphan gh-pages
           git checkout gh-pages || git checkout --orphan gh-pages
           cp .cr-release-packages/* .
-          helm repo index . --url https://therealpoys.github.io/volumania
+          helm repo index . --url https://therealpoys.github.io/volumania --merge index.yaml || helm repo index . --url https://therealpoys.github.io/volumania
+          touch .nojekyll
           git add .
-          git commit -m "Helm Repo aktualisiert" || echo "Keine Änderungen"
+          git commit -m "Helm Chart v${{ steps.chart.outputs.version }} veröffentlicht" || echo "Keine Änderungen"
           git push origin gh-pages
