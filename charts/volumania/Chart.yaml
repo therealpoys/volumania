@@ -2,4 +2,4 @@ apiVersion: v2
 name: volumania
 description: PVC AutoScaler for Kubernetes
 version: 0.1.0
-appVersion: "0.1.0"
+appVersion: "0.1"
