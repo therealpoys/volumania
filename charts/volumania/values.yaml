@@ -5,7 +5,7 @@ image:
   tag: cb6426ae6b054e63cd13fe4c7ae35bfec09ddf32
   pullPolicy: IfNotPresent
 
-imagePullSecret: ghcr-secret  # 👈 der Name des Kubernetes-Secrets
+imagePullSecret: ghcr-secret  
 
 resources:
   limits:

@@ -3,6 +3,4 @@ __pycache__/
 .idea/
 *.log
 .env
-*.md
-charts/
 .mypy_cache/

@@ -15,8 +15,10 @@ spec:
         app: volumania
     spec:
       serviceAccountName: volumania
+      {{- if .Values.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.imagePullSecret }}
+      {{- end }}
       containers:
         - name: operator
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
