@@ -1,0 +1,40 @@
+name: Helm Chart veröffentlichen
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release-helm-chart:
+    name: Helm Chart auf GitHub Pages veröffentlichen
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Helm installieren
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - name: Chart paketieren
+        run: |
+          mkdir -p .cr-release-packages
+          helm package charts/volumania --destination .cr-release-packages
+
+      - name: Git konfigurieren
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Helm-Chart auf gh-pages veröffentlichen
+        run: |
+          git fetch origin gh-pages || git checkout --orphan gh-pages
+          git checkout gh-pages || git checkout --orphan gh-pages
+          cp .cr-release-packages/* .
+          helm repo index . --url https://therealpoys.github.io/volumania
+          git add .
+          git commit -m "Helm Repo aktualisiert" || echo "Keine Änderungen"
+          git push origin gh-pages
