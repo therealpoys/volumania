@@ -91,8 +91,12 @@ metadata:
 spec:
   pvcName: my-pvc
   namespace: default
+  minSize: 1Gi
   stepSize: 2Gi
   maxSize: 50Gi
+  triggerAbovePercent: 60     
+  checkIntervalSeconds: 30   
+  cooldownSeconds: 60
 ```
 
 ---

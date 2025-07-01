@@ -15,6 +15,11 @@
 from kubernetes import client, config
 import os
 import re
+import requests
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 def load_k8s_config():
     try:
@@ -79,3 +84,68 @@ def compute_new_size(current: str, step: str) -> str:
 
 def is_smaller_or_equal(a: str, b: str) -> bool:
     return parse_size(a) <= parse_size(b)
+
+
+def get_serviceaccount_token():
+    with open("/var/run/secrets/kubernetes.io/serviceaccount/token", 'r') as f:
+        return f.read().strip()
+
+def get_kubelet_metrics(node_name, token):
+    headers = {"Authorization": f"Bearer {token}"}
+    url = f"https://kubernetes.default.svc/api/v1/nodes/{node_name}/proxy/metrics"
+    resp = requests.get(url, headers=headers, verify=False, timeout=5)
+    resp.raise_for_status()
+    return resp.text
+
+def parse_pvc_usage(metrics_text):
+    usages = []
+    pvc_usages = {}
+    for line in metrics_text.splitlines():
+        if "persistentvolumeclaim=" in line:
+            parts = line.split()
+            metric = parts[0]
+            value = float(parts[-1])
+            ns = get_label_value(line, "namespace")
+            pvc = get_label_value(line, "persistentvolumeclaim")
+            key = f"{ns}/{pvc}"
+
+            if key not in pvc_usages:
+                pvc_usages[key] = {}
+
+            if metric.startswith("kubelet_volume_stats_used_bytes"):
+                pvc_usages[key]["used"] = value
+            elif metric.startswith("kubelet_volume_stats_capacity_bytes"):
+                pvc_usages[key]["capacity"] = value
+
+    for key, data in pvc_usages.items():
+        if "used" in data and "capacity" in data:
+            usages.append({
+                "namespace": key.split("/")[0],
+                "pvc": key.split("/")[1],
+                "usage_percent": data["used"] / data["capacity"] * 100
+            })
+    return usages
+
+def get_label_value(line, label):
+    start = line.find(f'{label}="')
+    if start == -1:
+        return None
+    start += len(label) + 2
+    end = line.find('"', start)
+    return line[start:end]
+
+def fetch_all_pvc_usages_from_cluster():
+    token = get_serviceaccount_token()
+    v1 = client.CoreV1Api()
+    nodes = v1.list_node().items
+    all_usages = []
+
+    for node in nodes:
+        try:
+            metrics = get_kubelet_metrics(node.metadata.name, token)
+            usages = parse_pvc_usage(metrics)
+            all_usages.extend(usages)
+        except Exception as e:
+            print(f"❌ Failed to scrape node {node.metadata.name}: {e}")
+
+    return all_usages

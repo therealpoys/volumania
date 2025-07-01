@@ -13,21 +13,22 @@
 # limitations under the License.
 
 import kopf
+import logging
 import time
-from utils.k8s import patch_pvc_size, get_pvc_size, compute_new_size, is_smaller_or_equal
-from utils.prom import get_pvc_usage_percent
+from utils.k8s import patch_pvc_size, compute_new_size, is_smaller_or_equal, fetch_all_pvc_usages_from_cluster, get_pvc_size
 
-@kopf.timer('pvcautoscalers.scaling.volumania.io', interval=60.0)  # ersetzt checkIntervalSeconds
-def autoscale_pvc(spec, status, namespace, name, logger, **kwargs):
-    pvc_name = spec.get('pvcName')
-    step_size = spec.get('stepSize')
-    max_size = spec.get('maxSize')
-    threshold = spec.get('triggerAbovePercent', 80)
-    cooldown = spec.get('cooldownSeconds', 600)
-    enabled = spec.get('enabled', True)
+logger = logging.getLogger(__name__)
 
-    if not enabled:
-        logger.info(f"[AutoScaler] Skipped: autoscaling disabled for {pvc_name}.")
+@kopf.timer('pvcautoscalers', interval=60.0, sharp=True)
+def autoscale_pvc(spec, status, namespace, name, **_):
+    pvc_name = spec.get("pvcName")
+    step_size = spec.get("stepSize")
+    max_size = spec.get("maxSize")
+    threshold = spec.get("threshold", 75)
+    cooldown = spec.get("cooldown", 300)  # 5 min
+
+    if not pvc_name or not step_size or not max_size:
+        logger.warning(f"[AutoScaler] {name} missing pvcName, stepSize or maxSize")
         return
 
     # Prevent rapid repeats
@@ -39,7 +40,14 @@ def autoscale_pvc(spec, status, namespace, name, logger, **kwargs):
             logger.info(f"[AutoScaler] Cooldown in effect for {pvc_name}.")
             return
 
-    usage = get_pvc_usage_percent(namespace, pvc_name)
+    # hole usage aus cluster-wide fetch
+    usage = None
+    usages = fetch_all_pvc_usages_from_cluster()
+    for u in usages:
+        if u["namespace"] == namespace and u["pvc"] == pvc_name:
+            usage = u["usage_percent"]
+            break
+
     if usage is None:
         logger.warning(f"[AutoScaler] Could not determine usage for {pvc_name}.")
         return

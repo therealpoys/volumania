@@ -1,0 +1,11 @@
+Annotation-Driven Control
+Entwickler könnten ihre PVCs direkt mit Kubernetes-Annotations konfigurieren, z. B.:
+
+yaml
+Kopieren
+Bearbeiten
+metadata:
+  annotations:
+    volumania.io/autoscale: "true"
+    volumania.io/threshold: "85"
+    volumania.io/max-size: "50Gi"
