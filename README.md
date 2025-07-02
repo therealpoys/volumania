@@ -1,14 +1,17 @@
+
 # Volumania – Kubernetes volumes on autopilot
 
 **Volumania** is a Kubernetes operator that automatically resizes PersistentVolumeClaims (PVCs) based on their usage.  
-It supports both **manual resizing via CRDs** and **automatic scaling using Prometheus metrics**.
+It supports both **manual resizing via CRDs** and **automatic scaling by directly querying Kubernetes node metrics**.
 
 ---
 
 ## ✨ Features
 
 - 🔧 Manual PVC resizing via `PVCManualResize` CRD  
-- 📈 Automated PVC scaling with thresholds and limits  
+- 🚀 Automated PVC scaling with thresholds, step sizes and max sizes  
+- 🧩 No Prometheus required – directly uses the Kubernetes kubelet metrics API  
+- 🔒 Supports private container registries via `imagePullSecrets`
 
 ---
 
@@ -24,8 +27,7 @@ helm repo update
 ### 2. Install the Helm chart
 
 ```bash
-helm install volumania volumania/volumania \
-  --namespace volumania --create-namespace
+helm install volumania volumania/volumania   --namespace volumania --create-namespace
 ```
 
 ---
@@ -46,9 +48,6 @@ image:
 
 imagePullSecret: regcred  # Optional for private images
 
-prometheus:
-  url: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
-
 resources:
   limits:
     cpu: 100m
@@ -56,6 +55,8 @@ resources:
   requests:
     cpu: 50m
     memory: 64Mi
+kubernetes:
+  serviceHost: kubernetes.default.svc
 ```
 
 To install with your custom values:
@@ -77,7 +78,6 @@ metadata:
   name: resize-my-pvc
 spec:
   pvcName: my-pvc
-  namespace: default
   newSize: 20Gi
 ```
 
@@ -90,23 +90,22 @@ metadata:
   name: my-autoscaler
 spec:
   pvcName: my-pvc
-  namespace: default
   minSize: 1Gi
   stepSize: 2Gi
   maxSize: 50Gi
-  triggerAbovePercent: 60     
-  checkIntervalSeconds: 30   
-  cooldownSeconds: 60
+  triggerAbovePercent: 60     # Start scaling if usage exceeds 60%
+  checkIntervalSeconds: 30    # Check every 30 seconds
+  cooldownSeconds: 60         # Wait at least 60 seconds between resizes
 ```
 
 ---
 
 ## 🧪 Development
 
-To run the operator locally:
+To run the operator locally inside a cluster (via your ServiceAccount token):
 
 ```bash
-export PROMETHEUS_URL=http://your-prometheus:9090
+export KUBERNETES_SERVICE_HOST=kubernetes.default.svc
 kopf run --standalone --all-namespaces controllers/main.py
 ```
 

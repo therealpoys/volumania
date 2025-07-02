@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/therealpoys/volumania
-  tag: cb6426ae6b054e63cd13fe4c7ae35bfec09ddf32
+  tag: dev-dev
   pullPolicy: IfNotPresent
 
 imagePullSecret: ghcr-secret  
@@ -15,5 +15,5 @@ resources:
     cpu: 200m
     memory: 128Mi
 
-prometheus:
-  url: http://prometheus-kube-prometheus-prometheus.monitoring.svc:9090
+kubernetes:
+  serviceHost: kubernetes.default.svc
