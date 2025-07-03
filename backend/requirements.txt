@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+pyjwt
+kubernetes
+kopf
+requests
+pydantic
