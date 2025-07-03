@@ -14,26 +14,50 @@
 import kopf
 from utils.k8s import patch_pvc_size
 
+# Kopf handler that reacts to both "create" and "update" events
+# for the custom resource pvcmanualresizes.scaling.volumania.io
 @kopf.on.create('pvcmanualresizes.scaling.volumania.io')
 @kopf.on.update('pvcmanualresizes.scaling.volumania.io')
 def handle_manual_resize(spec, patch, namespace, logger, **kwargs):
+    """
+    Handles manual PVC resize requests.
+
+    This handler is triggered whenever a pvcmanualresizes.scaling.volumania.io
+    custom resource is created or updated. It reads the target PVC name
+    and the new requested size from the spec, performs the resize,
+    and updates the status field of the custom resource to reflect
+    the outcome.
+
+    Args:
+        spec (dict): The spec section of the custom resource,
+            expected to contain 'pvcName' and 'newSize'.
+        patch (dict): The patch object to update the resource's status.
+        namespace (str): The namespace where the custom resource lives.
+        logger (kopf.Logger): Logger instance provided by Kopf for structured logging.
+        **kwargs: Additional Kopf context parameters (ignored here).
+    """
+    # Extract target PVC name and the new desired size from the CR spec
     pvc_name = spec.get('pvcName')
     new_size = spec.get('newSize')
     
     logger.info(f"[ManualResize] Requested resize of PVC '{pvc_name}' to {new_size}.")
 
     try:
+        # Perform the actual PVC resize operation
         patch_pvc_size(namespace, pvc_name, new_size)
 
-        # ✅ Set the status via patch object
+        # Set the status to indicate success
         patch['status'] = {
             'applied': True,
             'message': f"PVC resized to {new_size}"
         }
     except Exception as e:
+        # On error, update the status to indicate failure
         patch['status'] = {
             'applied': False,
             'message': str(e)
         }
+        # Raise a TemporaryError to retry after a delay
         raise kopf.TemporaryError(f"Resize failed: {e}", delay=60)
+
 

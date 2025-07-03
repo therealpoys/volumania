@@ -13,24 +13,42 @@
 # limitations under the License.
 
 import kopf
+import logging
 import time
-from utils.k8s import patch_pvc_size, get_pvc_size, compute_new_size, is_smaller_or_equal
-from utils.prom import get_pvc_usage_percent
+from utils.k8s import (
+    patch_pvc_size, compute_new_size, is_smaller_or_equal,
+    fetch_all_pvc_usages_from_cluster, get_pvc_size
+)
 
-@kopf.timer('pvcautoscalers.scaling.volumania.io', interval=60.0)  # ersetzt checkIntervalSeconds
-def autoscale_pvc(spec, status, namespace, name, logger, **kwargs):
-    pvc_name = spec.get('pvcName')
-    step_size = spec.get('stepSize')
-    max_size = spec.get('maxSize')
-    threshold = spec.get('triggerAbovePercent', 80)
-    cooldown = spec.get('cooldownSeconds', 600)
-    enabled = spec.get('enabled', True)
+logger = logging.getLogger(__name__)
 
-    if not enabled:
-        logger.info(f"[AutoScaler] Skipped: autoscaling disabled for {pvc_name}.")
+
+@kopf.timer('pvcautoscalers', interval=60.0, sharp=True)
+def autoscale_pvc(spec, status, namespace, name, **_):
+    """
+    Kopf handler that runs every 60 seconds to autoscale a PVC
+    based on usage metrics and the configuration provided in the PVC autoscaler CR.
+
+    Args:
+        spec (dict): The spec of the pvcautoscaler CR (includes pvcName, stepSize, maxSize, threshold, cooldown).
+        status (dict): The current status of the pvcautoscaler resource.
+        namespace (str): The namespace of the pvcautoscaler CR.
+        name (str): The name of the pvcautoscaler CR.
+        **_: Additional arguments from kopf (ignored).
+    """
+    # Extract configuration from CR spec
+    pvc_name = spec.get("pvcName")
+    step_size = spec.get("stepSize")
+    max_size = spec.get("maxSize")
+    threshold = spec.get("threshold", 75)  # default to 75%
+    cooldown = spec.get("cooldown", 300)   # default to 300s (5 min)
+
+    # Ensure mandatory fields are set
+    if not pvc_name or not step_size or not max_size:
+        logger.warning(f"[AutoScaler] {name} missing pvcName, stepSize or maxSize")
         return
 
-    # Prevent rapid repeats
+    # Check cooldown: prevent scaling too frequently
     last_scaled = status.get("lastScaleTime")
     if last_scaled:
         last_ts = time.strptime(last_scaled, "%Y-%m-%dT%H:%M:%SZ")
@@ -39,26 +57,38 @@ def autoscale_pvc(spec, status, namespace, name, logger, **kwargs):
             logger.info(f"[AutoScaler] Cooldown in effect for {pvc_name}.")
             return
 
-    usage = get_pvc_usage_percent(namespace, pvc_name)
+    # Fetch current usage metrics from all nodes in the cluster
+    usage = None
+    usages = fetch_all_pvc_usages_from_cluster()
+    for u in usages:
+        if u["namespace"] == namespace and u["pvc"] == pvc_name:
+            usage = u["usage_percent"]
+            break
+
     if usage is None:
         logger.warning(f"[AutoScaler] Could not determine usage for {pvc_name}.")
         return
 
     logger.info(f"[AutoScaler] PVC '{pvc_name}' usage is at {usage:.1f}%.")
 
+    # Only scale if usage exceeds threshold
     if usage < threshold:
         logger.info(f"[AutoScaler] No action needed.")
         return
 
+    # Compute new desired size by adding the step size
     current_size = get_pvc_size(namespace, pvc_name)
     next_size = compute_new_size(current_size, step_size)
 
+    # Check if the new size would exceed the max size limit
     if not is_smaller_or_equal(next_size, max_size):
         logger.info(f"[AutoScaler] Max size reached for {pvc_name}. No resize.")
         return
 
+    # Apply the PVC size change
     patch_pvc_size(namespace, pvc_name, next_size)
 
+    # Return new status to be saved by Kopf
     return {
         "lastScaleTime": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "currentSize": next_size,
