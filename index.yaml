@@ -3,7 +3,25 @@ entries:
   volumania:
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-06-26T17:24:52.004409239Z"
+    created: "2025-07-03T07:10:15.422634948Z"
+    description: PVC AutoScaler for Kubernetes
+    digest: ebd696668736a4dcca30e3442a74e1e94b9652e66e9ae5871f65244786e8532a
+    name: volumania
+    urls:
+    - https://therealpoys.github.io/volumania/volumania-v0.3.0.tgz
+    version: v0.3.0
+  - apiVersion: v2
+    appVersion: "0.2"
+    created: "2025-07-03T07:10:15.423100242Z"
+    description: PVC AutoScaler for Kubernetes
+    digest: ebd696668736a4dcca30e3442a74e1e94b9652e66e9ae5871f65244786e8532a
+    name: volumania
+    urls:
+    - https://therealpoys.github.io/volumania/.cr-release-packages/volumania-v0.3.0.tgz
+    version: v0.3.0
+  - apiVersion: v2
+    appVersion: "0.2"
+    created: "2025-07-03T07:10:15.422464048Z"
     description: PVC AutoScaler for Kubernetes
     digest: 1b3914ea59b50698bbdf5705bdba8a7fb6835272b9285155ba9927b8a304273a
     name: volumania
@@ -12,7 +30,7 @@ entries:
     version: v0.2.0
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-06-26T17:24:52.004725058Z"
+    created: "2025-07-03T07:10:15.422942135Z"
     description: PVC AutoScaler for Kubernetes
     digest: 1b3914ea59b50698bbdf5705bdba8a7fb6835272b9285155ba9927b8a304273a
     name: volumania
@@ -21,7 +39,7 @@ entries:
     version: v0.2.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-06-26T17:24:52.004218924Z"
+    created: "2025-07-03T07:10:15.422275504Z"
     description: PVC AutoScaler for Kubernetes
     digest: 609d6ce2f95d52a2c91a259fcefbc2a44b19ce26fccb0aceb9c3a6ba56f8315a
     name: volumania
@@ -30,11 +48,11 @@ entries:
     version: v0.1.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-06-26T17:24:52.004581229Z"
+    created: "2025-07-03T07:10:15.422786373Z"
     description: PVC AutoScaler for Kubernetes
     digest: 609d6ce2f95d52a2c91a259fcefbc2a44b19ce26fccb0aceb9c3a6ba56f8315a
     name: volumania
     urls:
     - https://therealpoys.github.io/volumania/.cr-release-packages/volumania-v0.1.0.tgz
     version: v0.1.0
-generated: "2025-06-26T17:24:52.003875944Z"
+generated: "2025-07-03T07:10:15.421941587Z"
