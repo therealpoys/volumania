@@ -1,11 +1,11 @@
-name: Build & Push Volumania Images
+name: Build & Push Volumania Backend
 
 on:
   push:
     branches:
-      - '**'  
+      - '**'
     tags:
-      - 'v*'  
+      - 'v*'
 
 permissions:
   contents: read
@@ -36,15 +36,14 @@ jobs:
           echo "is_main=$([[ '${{ github.ref }}' == 'refs/heads/main' ]] && echo true || echo false)" >> $GITHUB_OUTPUT
           echo "is_tag=$([[ '${{ github.ref }}' == refs/tags/* ]] && echo true || echo false)" >> $GITHUB_OUTPUT
 
-      # Build & push dein bisheriges Image
-      - name: Build and push main Docker image
+      - name: Build and push volumania-backend Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./backend/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.sha }}
-            ${{ steps.meta.outputs.is_main == 'true' && format('ghcr.io/{0}:latest', github.repository) || '' }}
-            ${{ steps.meta.outputs.is_tag == 'true' && format('ghcr.io/{0}:{1}', github.repository, github.ref_name) || '' }}
-            ${{ steps.meta.outputs.is_main != 'true' && steps.meta.outputs.is_tag != 'true' && format('ghcr.io/{0}:dev-{1}', github.repository, steps.meta.outputs.branch) || '' }}
+            ghcr.io/${{ github.repository_owner }}/volumania-backend:${{ steps.meta.outputs.sha }}
+            ${{ steps.meta.outputs.is_main == 'true' && format('ghcr.io/{0}/volumania-backend:latest', github.repository_owner) || '' }}
+            ${{ steps.meta.outputs.is_tag == 'true' && format('ghcr.io/{0}/volumania-backend:{1}', github.repository_owner, github.ref_name) || '' }}
+            ${{ steps.meta.outputs.is_main != 'true' && steps.meta.outputs.is_tag != 'true' && format('ghcr.io/{0}/volumania-backend:dev-{1}', github.repository_owner, steps.meta.outputs.branch) || '' }}
