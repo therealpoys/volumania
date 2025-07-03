@@ -21,7 +21,7 @@ def get_client_with_token(token: str) -> client.CoreV1Api:
 
 def get_user_pvcs(token: str) -> List[Dict]:
     """
-    Lists all PVCs visible to the user represented by the token.
+    Lists all PVCs visible to the user represented by the token.s
 
     Args:
         token (str): The user's Kubernetes token.
