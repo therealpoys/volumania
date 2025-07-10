@@ -11,7 +11,7 @@ It supports both **manual resizing via CRDs** and **automatic scaling by directl
 - 🔧 Manual PVC resizing via `PVCManualResize` CRD  
 - 🚀 Automated PVC scaling with thresholds, step sizes and max sizes  
 - 🧩 No Prometheus required – directly uses the Kubernetes kubelet metrics API  
-- 🔒 Supports private container registries via `imagePullSecrets`
+
 
 ---
 
