@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import kopf
-from utils.k8s import patch_pvc_size
+from common.k8s import patch_pvc_size
 
 # Kopf handler that reacts to both "create" and "update" events
 # for the custom resource pvcmanualresizes.scaling.volumania.io

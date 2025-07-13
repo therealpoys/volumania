@@ -15,7 +15,7 @@
 import kopf
 import logging
 import time
-from utils.k8s import (
+from common.k8s import (
     patch_pvc_size, compute_new_size, is_smaller_or_equal,
     fetch_all_pvc_usages_from_cluster, get_pvc_size
 )

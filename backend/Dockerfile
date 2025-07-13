@@ -9,9 +9,9 @@ WORKDIR /app
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy your application code
+# Copy application code & shared logic
 COPY backend/app ./app
-COPY controllers ./controllers
+COPY common ./common
 
 # Expose port
 EXPOSE 8000
