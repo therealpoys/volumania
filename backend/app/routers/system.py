@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from backend.app import auth
+from app import auth
 
 
 

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
-from backend.app.services import k8s_service
-from backend.app import auth
+from app.services import k8s_service
+from app import auth
 
 
 
