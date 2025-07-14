@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import pvcs, autoscaler, system
+from routers import pvcs, autoscaler, system
 
 app = FastAPI()
 
