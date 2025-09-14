@@ -116,11 +116,10 @@ def apply_autoscaler_for_pvc(pvc_obj, logger):
             namespace=ns,
             plural=PLURAL,
             name=name,
-            body=body,
-            _content_type="application/apply-patch+yaml",
-            headers={"Content-Type": "application/apply-patch+yaml"},
+            body=body,  # apply body
             field_manager=FIELD_MANAGER,
             force=True,
+            content_type="application/apply-patch+yaml",
         )
         logger.info(f"Applied {KIND} {ns}/{name}")
     except ApiException as e:
