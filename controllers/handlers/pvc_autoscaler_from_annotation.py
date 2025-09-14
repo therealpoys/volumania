@@ -2,11 +2,7 @@
 import kopf
 import kubernetes
 from kubernetes.client import ApiException
-
-try:
-    from k8s import resolve_min_size, is_smaller_or_equal, is_valid_quantity
-except ImportError:
-    from .k8s import resolve_min_size, is_smaller_or_equal, is_valid_quantity  # type: ignore
+from utils.k8s import resolve_min_size, is_smaller_or_equal, is_valid_quantity
 
 # ---- Config ----
 ANNOT_PREFIX = "volumania.io/autoscaler."
