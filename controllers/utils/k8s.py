@@ -15,6 +15,7 @@
 from kubernetes import client, config
 import os
 import re
+from typing import Optional, Dict, Any
 
 def load_k8s_config():
     try:
@@ -25,8 +26,10 @@ def load_k8s_config():
     except Exception as e:
         raise RuntimeError(f"Could not load Kubernetes config: {e}")
 
-load_k8s_config()  # einmal beim Import ausführen
+load_k8s_config()  # load once on import
 
+
+# ---------------- Core PVC helpers ----------------
 
 def patch_pvc_size(namespace: str, pvc_name: str, new_size: str):
     v1 = client.CoreV1Api()
@@ -42,7 +45,7 @@ def patch_pvc_size(namespace: str, pvc_name: str, new_size: str):
     v1.patch_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace, body=body)
 
 def parse_size(size_str: str) -> int:
-    """Parst eine K8s-Size-Angabe wie '500Mi', '2Gi' in MiB"""
+    """Parse a K8s size like '500Mi', '2Gi' into MiB (int)."""
     units = {
         'Mi': 1,
         'Gi': 1024,
@@ -58,13 +61,13 @@ def parse_size(size_str: str) -> int:
     return int(value) * units[unit]
 
 def get_pvc_size(namespace: str, pvc_name: str) -> str:
-    """Liest die aktuelle angeforderte PVC-Größe aus dem Cluster (z. B. '1Gi', '500Mi')."""
+    """Return the current requested PVC size from the cluster (e.g. '1Gi', '500Mi')."""
     v1 = client.CoreV1Api()
     pvc = v1.read_namespaced_persistent_volume_claim(name=pvc_name, namespace=namespace)
     return pvc.spec.resources.requests['storage']
 
 def format_size(mib: int) -> str:
-    """Formatiert MiB wieder als z. B. '5Gi'"""
+    """Format MiB back into a human-friendly K8s size string like '5Gi'."""
     if mib % (1024 * 1024) == 0:
         return f"{mib // (1024 * 1024)}Ti"
     elif mib % 1024 == 0:
@@ -79,3 +82,28 @@ def compute_new_size(current: str, step: str) -> str:
 
 def is_smaller_or_equal(a: str, b: str) -> bool:
     return parse_size(a) <= parse_size(b)
+
+def is_valid_quantity(size_str: str) -> bool:
+    """Check if a size string is a valid K8s-like quantity according to parse_size()."""
+    try:
+        parse_size(size_str)
+        return True
+    except Exception:
+        return False
+
+def resolve_min_size(namespace: str, pvc_name: str, annotated_min: Optional[str]) -> Optional[str]:
+    """
+    Resolve minSize for a PVC:
+    - If annotated_min is a non-empty string, return it as-is.
+    - Otherwise, fetch the current PVC requested size from the cluster.
+    - Returns None if the current size cannot be determined.
+    """
+    val = (annotated_min or "").strip()
+    if val:
+        return val
+    try:
+        cur = get_pvc_size(namespace, pvc_name)
+        cur = (cur or "").strip()
+        return cur or None
+    except Exception:
+        return None
