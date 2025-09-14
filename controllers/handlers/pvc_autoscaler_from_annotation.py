@@ -116,9 +116,7 @@ def apply_autoscaler_for_pvc(pvc_obj, logger):
             namespace=ns,
             plural=PLURAL,
             name=name,
-            body=body,  # apply body
-            field_manager=FIELD_MANAGER,
-            force=True
+            body=body,  
         )
         logger.info(f"Applied {KIND} {ns}/{name}")
     except ApiException as e:
