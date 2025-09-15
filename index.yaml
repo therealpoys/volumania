@@ -3,7 +3,25 @@ entries:
   volumania:
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.814398565Z"
+    created: "2025-09-15T15:55:01.234193125Z"
+    description: PVC AutoScaler for Kubernetes
+    digest: bb39b8fc1bab2fe486196b4e157cca986d0fb17ef697cf7b79a7296c9cd6b96f
+    name: volumania
+    urls:
+    - https://therealpoys.github.io/volumania/volumania-v0.4.0.tgz
+    version: v0.4.0
+  - apiVersion: v2
+    appVersion: "0.2"
+    created: "2025-09-15T15:55:01.235725807Z"
+    description: PVC AutoScaler for Kubernetes
+    digest: bb39b8fc1bab2fe486196b4e157cca986d0fb17ef697cf7b79a7296c9cd6b96f
+    name: volumania
+    urls:
+    - https://therealpoys.github.io/volumania/.cr-release-packages/volumania-v0.4.0.tgz
+    version: v0.4.0
+  - apiVersion: v2
+    appVersion: "0.2"
+    created: "2025-09-15T15:55:01.233519758Z"
     description: PVC AutoScaler for Kubernetes
     digest: f09ddb5a726a8bb1b63d810ea78f6110cdfeec6ec8dc00225189019e5832e5c2
     name: volumania
@@ -12,7 +30,7 @@ entries:
     version: v0.3.2
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.815179565Z"
+    created: "2025-09-15T15:55:01.235503832Z"
     description: PVC AutoScaler for Kubernetes
     digest: f09ddb5a726a8bb1b63d810ea78f6110cdfeec6ec8dc00225189019e5832e5c2
     name: volumania
@@ -21,7 +39,7 @@ entries:
     version: v0.3.2
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.814163953Z"
+    created: "2025-09-15T15:55:01.233318062Z"
     description: PVC AutoScaler for Kubernetes
     digest: 4c8b50941dca6a1407c5798649090101aad8e6388ab0b428aa9c6e68f83307d8
     name: volumania
@@ -30,7 +48,7 @@ entries:
     version: v0.3.1
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.814998464Z"
+    created: "2025-09-15T15:55:01.235304851Z"
     description: PVC AutoScaler for Kubernetes
     digest: 4c8b50941dca6a1407c5798649090101aad8e6388ab0b428aa9c6e68f83307d8
     name: volumania
@@ -39,7 +57,7 @@ entries:
     version: v0.3.1
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.814004943Z"
+    created: "2025-09-15T15:55:01.233122958Z"
     description: PVC AutoScaler for Kubernetes
     digest: ebd696668736a4dcca30e3442a74e1e94b9652e66e9ae5871f65244786e8532a
     name: volumania
@@ -48,7 +66,7 @@ entries:
     version: v0.3.0
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.814858701Z"
+    created: "2025-09-15T15:55:01.235136497Z"
     description: PVC AutoScaler for Kubernetes
     digest: ebd696668736a4dcca30e3442a74e1e94b9652e66e9ae5871f65244786e8532a
     name: volumania
@@ -57,7 +75,7 @@ entries:
     version: v0.3.0
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.813832839Z"
+    created: "2025-09-15T15:55:01.232870076Z"
     description: PVC AutoScaler for Kubernetes
     digest: 1b3914ea59b50698bbdf5705bdba8a7fb6835272b9285155ba9927b8a304273a
     name: volumania
@@ -66,7 +84,7 @@ entries:
     version: v0.2.0
   - apiVersion: v2
     appVersion: "0.2"
-    created: "2025-07-14T19:55:04.814716293Z"
+    created: "2025-09-15T15:55:01.234950379Z"
     description: PVC AutoScaler for Kubernetes
     digest: 1b3914ea59b50698bbdf5705bdba8a7fb6835272b9285155ba9927b8a304273a
     name: volumania
@@ -75,7 +93,7 @@ entries:
     version: v0.2.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-07-14T19:55:04.813656016Z"
+    created: "2025-09-15T15:55:01.232605372Z"
     description: PVC AutoScaler for Kubernetes
     digest: 609d6ce2f95d52a2c91a259fcefbc2a44b19ce26fccb0aceb9c3a6ba56f8315a
     name: volumania
@@ -84,11 +102,11 @@ entries:
     version: v0.1.0
   - apiVersion: v2
     appVersion: "1.0"
-    created: "2025-07-14T19:55:04.814555881Z"
+    created: "2025-09-15T15:55:01.234641052Z"
     description: PVC AutoScaler for Kubernetes
     digest: 609d6ce2f95d52a2c91a259fcefbc2a44b19ce26fccb0aceb9c3a6ba56f8315a
     name: volumania
     urls:
     - https://therealpoys.github.io/volumania/.cr-release-packages/volumania-v0.1.0.tgz
     version: v0.1.0
-generated: "2025-07-14T19:55:04.81335537Z"
+generated: "2025-09-15T15:55:01.232150523Z"
