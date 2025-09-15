@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import kopf
-from handlers import manual_resize, autoscaler
+from handlers import manual_resize, autoscaler, pvc_autoscaler_from_annotation
 import logging
 
 # Optional: Global init/logging hooks

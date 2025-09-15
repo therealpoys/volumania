@@ -1,8 +1,7 @@
-
 # Volumania – Kubernetes volumes on autopilot
 
 **Volumania** is a Kubernetes operator that automatically resizes PersistentVolumeClaims (PVCs) based on their usage.  
-It supports both **manual resizing via CRDs** and **automatic scaling by directly querying Kubernetes node metrics**.
+It supports both **manual resizing via CRDs**, **automatic scaling with CRDs**, and now also **annotation-based autoscaling for PVCs**.
 
 ---
 
@@ -10,8 +9,8 @@ It supports both **manual resizing via CRDs** and **automatic scaling by directl
 
 - 🔧 Manual PVC resizing via `PVCManualResize` CRD  
 - 🚀 Automated PVC scaling with thresholds, step sizes and max sizes  
+- 🏷️ Annotation-based PVC autoscaling without writing CRDs yourself  
 - 🧩 No Prometheus required – directly uses the Kubernetes kubelet metrics API  
-
 
 ---
 
@@ -67,9 +66,11 @@ helm install volumania volumania/volumania -f my-values.yaml
 
 ---
 
-## 🧾 CRD Examples
+## 🧾 Usage
 
-### Manual PVC Resize
+You now have **three ways** to let Volumania autoscale your PVCs:
+
+### 1. Manual PVC Resize
 
 ```yaml
 apiVersion: scaling.volumania.io/v1
@@ -81,7 +82,7 @@ spec:
   newSize: 20Gi
 ```
 
-### PVC AutoScaler
+### 2. PVC AutoScaler (via CRD)
 
 ```yaml
 apiVersion: scaling.volumania.io/v1
@@ -98,6 +99,44 @@ spec:
   cooldownSeconds: 60         # Wait at least 60 seconds between resizes
 ```
 
+### 3. PVC AutoScaler (via Annotations)
+
+Instead of creating a CRD manually, you can enable autoscaling directly on a PVC using annotations:
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-data
+  namespace: default
+  annotations:
+    volumania.io/autoscaler.enabled: "true"
+    volumania.io/autoscaler.stepSize: "2Gi"   # required
+    volumania.io/autoscaler.maxSize: "50Gi"   # required
+    # optional: will default to current size if not set
+    volumania.io/autoscaler.minSize: "10Gi"
+    # optional: custom Prometheus query
+    volumania.io/autoscaler.promQuery: "my_prometheus_query"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+```
+
+#### When to use annotations?
+Annotation-based autoscaling is especially useful when:
+- You don’t want to manage CRDs manually  
+- PVCs are created automatically by higher-level controllers such as:
+  - **StatefulSets**  
+  - **Operators** (e.g. PostgreSQL, Kafka, Elasticsearch)  
+  - **Helm charts** where PVC templates are embedded  
+- You want autoscaling to be declared **close to the PVC itself** for clarity  
+
+In these cases, Volumania will detect the annotations and automatically create and manage the underlying `PVCAutoScaler` CR for you.
+
 ---
 
 ## 🧪 Development
@@ -113,14 +152,14 @@ kopf run --standalone --all-namespaces controllers/main.py
 
 ## 📄 License
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
+Licensed under the Apache License, Version 2.0 (the "License");  
+you may not use this file except in compliance with the License.  
 You may obtain a copy of the License at:
 
 http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
+Unless required by applicable law or agreed to in writing, software  
+distributed under the License is distributed on an "AS IS" BASIS,  
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
+See the License for the specific language governing permissions and  
 limitations under the License.
