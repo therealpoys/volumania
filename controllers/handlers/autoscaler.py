@@ -19,6 +19,17 @@ from utils.prom import get_pvc_usage_percent
 
 @kopf.timer('pvcautoscalers.scaling.volumania.io', interval=60.0)  # ersetzt checkIntervalSeconds
 def autoscale_pvc(spec, status, namespace, name, logger, **kwargs):
+    """
+    Kopf handler that runs every 60 seconds to autoscale a PVC
+    based on usage metrics and the configuration provided in the PVC autoscaler CR.
+
+    Args:
+        spec (dict): The spec of the pvcautoscaler CR (includes pvcName, stepSize, maxSize, threshold, cooldown).
+        status (dict): The current status of the pvcautoscaler resource.
+        namespace (str): The namespace of the pvcautoscaler CR.
+        name (str): The name of the pvcautoscaler CR.
+        **_: Additional arguments from kopf (ignored).
+    """
     pvc_name = spec.get('pvcName')
     step_size = spec.get('stepSize')
     max_size = spec.get('maxSize')
