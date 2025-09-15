@@ -17,7 +17,7 @@ import kubernetes
 from kubernetes.client import ApiException
 from utils.k8s import resolve_min_size, is_smaller_or_equal, is_valid_quantity
 
-# ---- Config ----
+# ---- Annotation keys ----
 ANNOT_PREFIX = "volumania.io/autoscaler."
 ANNOT_ENABLED = ANNOT_PREFIX + "enabled"
 ANNOT_STEP    = ANNOT_PREFIX + "stepSize"
@@ -25,17 +25,41 @@ ANNOT_MAX     = ANNOT_PREFIX + "maxSize"
 ANNOT_MIN     = ANNOT_PREFIX + "minSize"
 ANNOT_QUERY   = ANNOT_PREFIX + "promQuery"
 
+# ---- CRD config ----
 GROUP   = "scaling.volumania.io"
 VERSION = "v1"
 PLURAL  = "pvcautoscalers"
 KIND    = "PVCAutoScaler"
 FIELD_MANAGER = "volumania-annotation-controller"
 
+
 def autoscaler_name(namespace: str, pvc_name: str) -> str:
+    """
+    Generate a deterministic PVCAutoScaler name for a PVC.
+
+    Args:
+        namespace (str): The namespace where the PVC resides.
+        pvc_name (str): The name of the PVC.
+
+    Returns:
+        str: Lowercased deterministic PVCAutoScaler resource name.
+    """
     return f"autoscaler-{namespace}-{pvc_name}".lower()
 
+
 def build_pvc_autoscaler_body(namespace: str, pvc_name: str, cfg: dict, name: str) -> dict:
-    """Build the PVCAutoScaler custom resource body (CR spec)."""
+    """
+    Build the PVCAutoScaler custom resource body (CR spec).
+
+    Args:
+        namespace (str): Namespace of the PVC and PVCAutoScaler.
+        pvc_name (str): Name of the PVC.
+        cfg (dict): Validated autoscaler configuration.
+        name (str): Name of the PVCAutoScaler resource.
+
+    Returns:
+        dict: A dictionary representing the PVCAutoScaler manifest.
+    """
     spec = {"pvcName": pvc_name, "namespace": namespace}
     spec.update({k: v for k, v in cfg.items() if v is not None})
     return {
@@ -45,13 +69,36 @@ def build_pvc_autoscaler_body(namespace: str, pvc_name: str, cfg: dict, name: st
         "spec": spec,
     }
 
+
 def _warn(pvc_obj, logger, msg: str):
+    """
+    Emit a Kubernetes warning event and log an error message.
+
+    Args:
+        pvc_obj (dict): The PVC object where the event should be attached.
+        logger (kopf.Logger): Kopf logger instance.
+        msg (str): Warning/error message to log and attach as an event.
+    """
     try:
         kopf.event(pvc_obj, type="Warning", reason="AutoscalerConfigError", message=msg)
     finally:
         logger.error(f"[PVC-Autoscaling]{msg}")
 
+
 def _build_cfg_from_annotations(pvc_obj, logger):
+    """
+    Extract and validate autoscaler configuration from PVC annotations.
+
+    Args:
+        pvc_obj (dict): The PVC object with metadata and annotations.
+        logger (kopf.Logger): Kopf logger instance.
+
+    Returns:
+        dict | str | None:
+            - dict: Valid configuration with stepSize, maxSize, minSize, and optional metrics.
+            - "ERROR": If annotations are invalid or missing required fields.
+            - None: If autoscaler is disabled.
+    """
     meta = pvc_obj.get("metadata") or {}
     ns   = meta.get("namespace")
     pvc  = meta.get("name")
@@ -99,7 +146,16 @@ def _build_cfg_from_annotations(pvc_obj, logger):
         cfg["metrics"] = {"promQuery": prom}
     return cfg
 
+
 def apply_autoscaler_for_pvc(pvc_obj, logger):
+    """
+    Create, patch, or delete a PVCAutoScaler CR for a given PVC
+    based on its autoscaler annotations.
+
+    Args:
+        pvc_obj (dict): The PVC object including metadata and annotations.
+        logger (kopf.Logger): Kopf logger instance.
+    """
     meta = pvc_obj.get("metadata") or {}
     ns   = meta.get("namespace")
     pvc  = meta.get("name")
@@ -129,7 +185,7 @@ def apply_autoscaler_for_pvc(pvc_obj, logger):
             namespace=ns,
             plural=PLURAL,
             name=name,
-            body=body,  
+            body=body,
         )
         logger.info(f"Applied {KIND} {ns}/{name}")
     except ApiException as e:
@@ -144,6 +200,15 @@ def apply_autoscaler_for_pvc(pvc_obj, logger):
 
 @kopf.on.event("", "v1", "persistentvolumeclaims")
 def pvc_event(event, logger, **_):
+    """
+    Kopf event handler for PVCs.
+    Reacts to creation and modification events to reconcile PVCAutoScaler resources.
+
+    Args:
+        event (dict): Kubernetes event containing the PVC object.
+        logger (kopf.Logger): Kopf logger instance.
+        **_: Additional args provided by Kopf (ignored).
+    """
     etype = event.get("type")
     obj   = event.get("object") or {}
     if etype in ("ADDED", "MODIFIED"):
